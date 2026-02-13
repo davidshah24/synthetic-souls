@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-soul-purple: #8b5cf6;
+  --color-soul-blue: #3b82f6;
+  --color-soul-cyan: #06b6d4;
+  --color-soul-pink: #ec4899;
+  --color-soul-dark: #0a0a0f;
+  --color-soul-darker: #050508;
+  --color-soul-card: #111118;
+  --color-soul-border: #1e1e2e;
+  --color-soul-text: #a1a1b5;
+  --color-soul-accent: #c084fc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-soul-darker);
+  color: #e4e4ed;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-soul-purple), var(--color-soul-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow effect */
+.glow-purple {
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.15), 0 0 80px rgba(139, 92, 246, 0.05);
+}
+
+.glow-border {
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+/* Animated gradient border */
+.animated-border {
+  position: relative;
+  overflow: hidden;
+}
+
+.animated-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--color-soul-purple), var(--color-soul-cyan), var(--color-soul-pink));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: borderRotate 4s linear infinite;
+}
+
+@keyframes borderRotate {
+  0% {
+    background: linear-gradient(0deg, var(--color-soul-purple), var(--color-soul-cyan), var(--color-soul-pink));
+  }
+  25% {
+    background: linear-gradient(90deg, var(--color-soul-purple), var(--color-soul-cyan), var(--color-soul-pink));
+  }
+  50% {
+    background: linear-gradient(180deg, var(--color-soul-purple), var(--color-soul-cyan), var(--color-soul-pink));
+  }
+  75% {
+    background: linear-gradient(270deg, var(--color-soul-purple), var(--color-soul-cyan), var(--color-soul-pink));
+  }
+  100% {
+    background: linear-gradient(360deg, var(--color-soul-purple), var(--color-soul-cyan), var(--color-soul-pink));
+  }
+}
+
+/* Floating particles background */
+.particles-bg {
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
+}
