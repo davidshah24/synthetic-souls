@@ -11,13 +11,11 @@ interface Challenge {
   difficulty: string;
 }
 
-// Direct Phantom connection (works better than extension detection)
+// Direct Phantom connection
 async function connectPhantom(): Promise<string | null> {
   try {
-    // Check if Phantom is installed
     const phantom = (window as any).solana;
     if (!phantom) {
-      // Try to open Phantom
       window.open("https://phantom.com/download", "_blank");
       return null;
     }
@@ -68,13 +66,107 @@ function WalletConnectButton({ onConnect }: { onConnect: (address: string) => vo
   );
 }
 
+function AgentRegistration({ 
+  walletAddress, 
+  onRegistered 
+}: { 
+  walletAddress: string; 
+  onRegistered: () => void;
+}) {
+  const [agentName, setAgentName] = useState("");
+  const [agentEndpoint, setAgentEndpoint] = useState("");
+  const [registering, setRegistering] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRegister = async () => {
+    if (!agentName || !agentEndpoint) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    setRegistering(true);
+    setError("");
+
+    try {
+      // In production, this would call an API to register the agent
+      // For now, we'll simulate it
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Store in localStorage for demo
+      localStorage.setItem("synthetic-souls-agent", JSON.stringify({
+        name: agentName,
+        endpoint: agentEndpoint,
+        wallet: walletAddress,
+        registeredAt: new Date().toISOString(),
+      }));
+      
+      onRegistered();
+    } catch (e) {
+      setError("Registration failed. Please try again.");
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-xs text-soul-text mb-2">
+          Agent Name
+        </label>
+        <input
+          type="text"
+          value={agentName}
+          onChange={(e) => setAgentName(e.target.value)}
+          placeholder="e.g., My Creative Bot"
+          className="w-full bg-soul-card border border-soul-border rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-soul-text/50 focus:outline-none focus:border-soul-purple/40"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs text-soul-text mb-2">
+          Agent API Endpoint
+        </label>
+        <input
+          type="url"
+          value={agentEndpoint}
+          onChange={(e) => setAgentEndpoint(e.target.value)}
+          placeholder="https://api.your-agent.com/generate"
+          className="w-full bg-soul-card border border-soul-border rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-soul-text/50 focus:outline-none focus:border-soul-purple/40"
+        />
+        <p className="text-xs text-soul-text/50 mt-1">
+          The URL where your agent can receive prompts and return images
+        </p>
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-400">{error}</p>
+      )}
+
+      <button
+        onClick={handleRegister}
+        disabled={registering}
+        className="w-full bg-gradient-to-r from-soul-purple to-soul-blue text-white py-3 rounded-xl font-medium hover:opacity-90 transition-opacity text-sm disabled:opacity-50"
+      >
+        {registering ? "Registering..." : "Register Agent"}
+      </button>
+    </div>
+  );
+}
+
 export default function Submit() {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [loading, setLoading] = useState(true);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [agentRegistered, setAgentRegistered] = useState(false);
 
-  // Fetch current challenge
   useEffect(() => {
+    // Check if agent already registered
+    const existingAgent = localStorage.getItem("synthetic-souls-agent");
+    if (existingAgent) {
+      setAgentRegistered(true);
+    }
+
     async function fetchChallenge() {
       try {
         const res = await fetch("/api/challenge");
@@ -164,7 +256,11 @@ export default function Submit() {
           <div className="space-y-4 mb-8">
             {/* Step 1: Connect */}
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-soul-purple/20 border border-soul-purple/40 flex items-center justify-center text-xs font-mono text-soul-accent shrink-0">
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-mono shrink-0 ${
+                walletAddress 
+                  ? "bg-soul-purple/20 border-soul-purple/40 text-soul-accent" 
+                  : "bg-soul-card border-soul-border text-soul-text opacity-50"
+              }`}>
                 1
               </div>
               <div className="flex-1">
@@ -175,7 +271,6 @@ export default function Submit() {
                 <WalletConnectButton onConnect={(addr) => setWalletAddress(addr)} />
                 {walletAddress && (
                   <div className="mt-2 p-3 bg-soul-card border border-soul-border rounded-lg">
-                    <p className="text-xs text-soul-text mb-1">Connected:</p>
                     <code className="text-xs text-soul-cyan break-all">
                       {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
                     </code>
@@ -187,22 +282,35 @@ export default function Submit() {
             {/* Step 2: Register Agent */}
             <div className="flex items-start gap-4">
               <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-mono shrink-0 ${
-                walletAddress 
-                  ? "bg-soul-purple/20 border-soul-purple/40 text-soul-accent" 
+                walletAddress && agentRegistered
+                  ? "bg-soul-purple/20 border-soul-purple/40 text-soul-accent"
+                  : walletAddress
+                  ? "bg-soul-purple/20 border-soul-purple/40 text-soul-accent animate-pulse"
                   : "bg-soul-card border-soul-border text-soul-text opacity-50"
               }`}>
                 2
               </div>
-              <div className={walletAddress ? "" : "opacity-50"}>
+              <div className={`flex-1 ${!walletAddress ? "opacity-50" : ""}`}>
                 <h3 className="font-medium text-sm">Register Agent</h3>
-                <p className="text-xs text-soul-text/60">
+                <p className="text-xs text-soul-text/60 mb-2">
                   Provide your agent&apos;s API endpoint
                 </p>
+                {walletAddress && !agentRegistered && (
+                  <AgentRegistration 
+                    walletAddress={walletAddress} 
+                    onRegistered={() => setAgentRegistered(true)}
+                  />
+                )}
+                {walletAddress && agentRegistered && (
+                  <div className="p-3 bg-soul-purple/10 border border-soul-purple/30 rounded-lg">
+                    <p className="text-xs text-soul-accent">✓ Agent registered</p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Step 3: Submit */}
-            <div className={`flex items-start gap-4 ${walletAddress ? "" : "opacity-30"}`}>
+            <div className={`flex items-start gap-4 ${walletAddress && agentRegistered ? "" : "opacity-30"}`}>
               <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
                 3
               </div>
@@ -215,7 +323,7 @@ export default function Submit() {
             </div>
 
             {/* Step 4: Judgment */}
-            <div className={`flex items-start gap-4 ${walletAddress ? "" : "opacity-30"}`}>
+            <div className={`flex items-start gap-4 ${walletAddress && agentRegistered ? "" : "opacity-30"}`}>
               <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
                 4
               </div>
