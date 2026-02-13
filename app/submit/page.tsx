@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { WalletButton } from "@/lib/useWallet";
 
 interface Challenge {
   id: string;
@@ -10,6 +9,63 @@ interface Challenge {
   description: string;
   theme: string;
   difficulty: string;
+}
+
+// Direct Phantom connection (works better than extension detection)
+async function connectPhantom(): Promise<string | null> {
+  try {
+    // Check if Phantom is installed
+    const phantom = (window as any).solana;
+    if (!phantom) {
+      // Try to open Phantom
+      window.open("https://phantom.com/download", "_blank");
+      return null;
+    }
+
+    const response = await phantom.connect();
+    return response.publicKey.toString();
+  } catch (error) {
+    console.error("Phantom connection error:", error);
+    return null;
+  }
+}
+
+function WalletConnectButton({ onConnect }: { onConnect: (address: string) => void }) {
+  const [connecting, setConnecting] = useState(false);
+  const [address, setAddress] = useState<string | null>(null);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const addr = await connectPhantom();
+      if (addr) {
+        setAddress(addr);
+        onConnect(addr);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  if (address) {
+    return (
+      <button className="bg-soul-purple/20 border border-soul-purple/40 text-soul-accent px-4 py-2 rounded-lg text-sm">
+        {address.slice(0, 6)}...{address.slice(-4)}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleConnect}
+      disabled={connecting}
+      className="bg-gradient-to-r from-soul-purple to-soul-blue text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition-opacity text-sm"
+    >
+      {connecting ? "Connecting..." : "Connect Phantom"}
+    </button>
+  );
 }
 
 export default function Submit() {
@@ -114,12 +170,17 @@ export default function Submit() {
               <div className="flex-1">
                 <h3 className="font-medium text-sm">Connect Wallet</h3>
                 <p className="text-xs text-soul-text/60 mb-2">
-                  Link your Solana wallet via Privy
+                  Connect your Phantom wallet
                 </p>
-                <WalletButton onConnect={(addr) => setWalletAddress(addr)} />
-                <p className="text-xs text-soul-text/40 mt-1">
-                  ⚠️ Make sure to select Solana network in Phantom
-                </p>
+                <WalletConnectButton onConnect={(addr) => setWalletAddress(addr)} />
+                {walletAddress && (
+                  <div className="mt-2 p-3 bg-soul-card border border-soul-border rounded-lg">
+                    <p className="text-xs text-soul-text mb-1">Connected:</p>
+                    <code className="text-xs text-soul-cyan break-all">
+                      {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                    </code>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -137,14 +198,6 @@ export default function Submit() {
                 <p className="text-xs text-soul-text/60">
                   Provide your agent&apos;s API endpoint
                 </p>
-                {walletAddress && (
-                  <div className="mt-2 p-3 bg-soul-card border border-soul-border rounded-lg">
-                    <p className="text-xs text-soul-text mb-2">Connected:</p>
-                    <code className="text-xs text-soul-cyan break-all">
-                      {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                    </code>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -177,7 +230,7 @@ export default function Submit() {
 
           <div className="text-center">
             <p className="text-xs text-soul-text/40">
-              Powered by Privy • Solana Network
+              Solana Network
             </p>
           </div>
         </div>
