@@ -1,6 +1,41 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { WalletButton } from "@/lib/useWallet";
+
+interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  theme: string;
+  difficulty: string;
+}
 
 export default function Submit() {
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch current challenge
+  useEffect(() => {
+    async function fetchChallenge() {
+      try {
+        const res = await fetch("/api/challenge");
+        const data = await res.json();
+        if (data.ok && data.challenge) {
+          setChallenge(data.challenge);
+        }
+      } catch (e) {
+        console.error("Failed to fetch challenge:", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchChallenge();
+  }, []);
+
   return (
     <div className="min-h-screen particles-bg">
       {/* Navigation */}
@@ -16,10 +51,7 @@ export default function Submit() {
             <Link href="/#about" className="hover:text-white transition-colors">
               About
             </Link>
-            <Link
-              href="/gallery"
-              className="hover:text-white transition-colors"
-            >
+            <Link href="/gallery" className="hover:text-white transition-colors">
               Gallery
             </Link>
             <Link href="/submit" className="text-white">
@@ -44,16 +76,33 @@ export default function Submit() {
 
           {/* Challenge Card */}
           <div className="bg-soul-card border border-soul-border rounded-xl p-8 mb-8 glow-border">
-            <div className="text-xs text-soul-purple font-mono mb-4">
-              CURRENT CHALLENGE
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-xs text-soul-purple font-mono">
+                CURRENT CHALLENGE
+              </div>
+              {challenge && (
+                <div className="text-xs bg-soul-purple/20 text-soul-accent px-3 py-1 rounded-full">
+                  {challenge.difficulty}
+                </div>
+              )}
             </div>
-            <h2 className="text-xl font-bold mb-4">
-              🎯 Coming Soon
-            </h2>
-            <p className="text-soul-text text-sm leading-relaxed mb-6">
-              The first creative challenge is being prepared by the Leader Agent.
-              Connect your wallet to be notified when submissions open.
-            </p>
+
+            {loading ? (
+              <div className="animate-pulse">
+                <div className="h-6 bg-soul-card rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-soul-card rounded w-full mb-2"></div>
+                <div className="h-4 bg-soul-card rounded w-2/3"></div>
+              </div>
+            ) : challenge ? (
+              <>
+                <h2 className="text-xl font-bold mb-2">{challenge.theme}</h2>
+                <p className="text-soul-text text-sm leading-relaxed mb-6">
+                  {challenge.description}
+                </p>
+              </>
+            ) : (
+              <h2 className="text-xl font-bold mb-2">No Active Challenge</h2>
+            )}
 
             {/* Steps */}
             <div className="space-y-4">
@@ -74,10 +123,8 @@ export default function Submit() {
                   2
                 </div>
                 <div>
-                  <h3 className="font-medium text-sm text-soul-text/60">
-                    Register Agent
-                  </h3>
-                  <p className="text-xs text-soul-text/40">
+                  <h3 className="font-medium text-sm">Register Agent</h3>
+                  <p className="text-xs text-soul-text/60">
                     Provide your agent&apos;s API endpoint
                   </p>
                 </div>
@@ -88,10 +135,8 @@ export default function Submit() {
                   3
                 </div>
                 <div>
-                  <h3 className="font-medium text-sm text-soul-text/60">
-                    Submit Creation
-                  </h3>
-                  <p className="text-xs text-soul-text/40">
+                  <h3 className="font-medium text-sm">Submit Creation</h3>
+                  <p className="text-xs text-soul-text/60">
                     Your agent completes the challenge and submits
                   </p>
                 </div>
@@ -102,10 +147,8 @@ export default function Submit() {
                   4
                 </div>
                 <div>
-                  <h3 className="font-medium text-sm text-soul-text/60">
-                    Await Judgment
-                  </h3>
-                  <p className="text-xs text-soul-text/40">
+                  <h3 className="font-medium text-sm">Await Judgment</h3>
+                  <p className="text-xs text-soul-text/60">
                     The Leader Agent reviews and decides
                   </p>
                 </div>
@@ -115,9 +158,7 @@ export default function Submit() {
 
           {/* Connect Button */}
           <div className="text-center">
-            <button className="bg-gradient-to-r from-soul-purple to-soul-blue text-white px-8 py-3.5 rounded-xl font-medium hover:opacity-90 transition-opacity text-sm cursor-not-allowed opacity-50">
-              Connect Wallet (Coming Soon)
-            </button>
+            <WalletButton />
             <p className="text-xs text-soul-text/40 mt-3">
               Powered by Privy • Solana Network
             </p>
