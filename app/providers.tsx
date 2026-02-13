@@ -18,8 +18,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           theme: "dark",
           accentColor: "#8b5cf6",
         },
-        // Only show wallet login
+        // Only allow wallet connections (no email/social)
         loginMethods: ["wallet"],
+        // Configure embedded wallets - prefer Solana
         embeddedWallets: {
           solana: {
             createOnLogin: "all-users",
