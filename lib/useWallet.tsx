@@ -3,13 +3,16 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useState, useEffect } from "react";
 
-export function WalletButton() {
+interface WalletButtonProps {
+  onConnect?: (address: string) => void;
+}
+
+export function WalletButton({ onConnect }: WalletButtonProps) {
   const { ready, authenticated, user, login, logout } = usePrivy();
   const [address, setAddress] = useState<string | null>(null);
   
   const privyAppId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
-  // If no Privy app ID, show a message
   if (!privyAppId) {
     return (
       <button className="bg-soul-card border border-soul-border text-soul-text px-4 py-2 rounded-lg text-sm" disabled>
@@ -20,11 +23,15 @@ export function WalletButton() {
 
   useEffect(() => {
     if (user?.wallet) {
-      setAddress(user.wallet.address);
+      const walletAddress = user.wallet.address;
+      if (walletAddress) {
+        setAddress(walletAddress);
+        onConnect?.(walletAddress);
+      }
     } else {
       setAddress(null);
     }
-  }, [user]);
+  }, [user, onConnect]);
 
   const shortAddress = address
     ? `${address.slice(0, 6)}...${address.slice(-4)}`

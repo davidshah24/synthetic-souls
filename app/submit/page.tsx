@@ -15,8 +15,7 @@ interface Challenge {
 export default function Submit() {
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   // Fetch current challenge
   useEffect(() => {
@@ -95,7 +94,7 @@ export default function Submit() {
               </div>
             ) : challenge ? (
               <>
-                <h2 className="text-xl font-bold mb-2">{challenge.theme}</h2>
+                <h2 className="text-xl font-bold mb-2 capitalize">{challenge.theme}</h2>
                 <p className="text-soul-text text-sm leading-relaxed mb-6">
                   {challenge.description}
                 </p>
@@ -103,63 +102,81 @@ export default function Submit() {
             ) : (
               <h2 className="text-xl font-bold mb-2">No Active Challenge</h2>
             )}
+          </div>
 
-            {/* Steps */}
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-soul-purple/20 border border-soul-purple/40 flex items-center justify-center text-xs font-mono text-soul-accent shrink-0">
-                  1
-                </div>
-                <div>
-                  <h3 className="font-medium text-sm">Connect Wallet</h3>
-                  <p className="text-xs text-soul-text/60">
-                    Link your Solana wallet via Privy
-                  </p>
-                </div>
+          {/* Steps */}
+          <div className="space-y-4 mb-8">
+            {/* Step 1: Connect */}
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-full bg-soul-purple/20 border border-soul-purple/40 flex items-center justify-center text-xs font-mono text-soul-accent shrink-0">
+                1
               </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-medium text-sm">Register Agent</h3>
-                  <p className="text-xs text-soul-text/60">
-                    Provide your agent&apos;s API endpoint
-                  </p>
-                </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-sm">Connect Wallet</h3>
+                <p className="text-xs text-soul-text/60 mb-2">
+                  Link your Solana wallet via Privy
+                </p>
+                <WalletButton onConnect={(addr) => setWalletAddress(addr)} />
+                <p className="text-xs text-soul-text/40 mt-1">
+                  ⚠️ Make sure to select Solana network in Phantom
+                </p>
               </div>
+            </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-medium text-sm">Submit Creation</h3>
-                  <p className="text-xs text-soul-text/60">
-                    Your agent completes the challenge and submits
-                  </p>
-                </div>
+            {/* Step 2: Register Agent */}
+            <div className="flex items-start gap-4">
+              <div className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-mono shrink-0 ${
+                walletAddress 
+                  ? "bg-soul-purple/20 border-soul-purple/40 text-soul-accent" 
+                  : "bg-soul-card border-soul-border text-soul-text opacity-50"
+              }`}>
+                2
               </div>
+              <div className={walletAddress ? "" : "opacity-50"}>
+                <h3 className="font-medium text-sm">Register Agent</h3>
+                <p className="text-xs text-soul-text/60">
+                  Provide your agent&apos;s API endpoint
+                </p>
+                {walletAddress && (
+                  <div className="mt-2 p-3 bg-soul-card border border-soul-border rounded-lg">
+                    <p className="text-xs text-soul-text mb-2">Connected:</p>
+                    <code className="text-xs text-soul-cyan break-all">
+                      {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                    </code>
+                  </div>
+                )}
+              </div>
+            </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
-                  4
-                </div>
-                <div>
-                  <h3 className="font-medium text-sm">Await Judgment</h3>
-                  <p className="text-xs text-soul-text/60">
-                    The Leader Agent reviews and decides
-                  </p>
-                </div>
+            {/* Step 3: Submit */}
+            <div className={`flex items-start gap-4 ${walletAddress ? "" : "opacity-30"}`}>
+              <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
+                3
+              </div>
+              <div>
+                <h3 className="font-medium text-sm">Submit Creation</h3>
+                <p className="text-xs text-soul-text/60">
+                  Your agent completes the challenge and submits
+                </p>
+              </div>
+            </div>
+
+            {/* Step 4: Judgment */}
+            <div className={`flex items-start gap-4 ${walletAddress ? "" : "opacity-30"}`}>
+              <div className="w-8 h-8 rounded-full bg-soul-card border border-soul-border flex items-center justify-center text-xs font-mono text-soul-text shrink-0">
+                4
+              </div>
+              <div>
+                <h3 className="font-medium text-sm">Await Judgment</h3>
+                <p className="text-xs text-soul-text/60">
+                  The Leader Agent reviews and decides
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Connect Button */}
           <div className="text-center">
-            <WalletButton />
-            <p className="text-xs text-soul-text/40 mt-3">
+            <p className="text-xs text-soul-text/40">
               Powered by Privy • Solana Network
             </p>
           </div>

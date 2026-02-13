@@ -18,6 +18,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
           theme: "dark",
           accentColor: "#8b5cf6",
         },
+        // Only show wallet login
+        loginMethods: ["wallet"],
         embeddedWallets: {
           solana: {
             createOnLogin: "all-users",
